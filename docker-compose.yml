@@ -1,0 +1,43 @@
+version: "3"
+services:
+  db:
+    image: redis
+    container_name: redis-interdisciplinaire
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    entrypoint: redis-server --appendonly yes
+    restart: always
+    networks:
+      interdisciplinaire:
+        aliases:
+          - database
+
+  web:
+    container_name: web-interdisciplinaire
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    links:
+      - db:database
+    command: >
+      sh -c "pipenv install --system
+             python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 interdisciplinaire.wsgi:application -w 2 --reload"
+    volumes:
+      - .:/website
+    environment:
+      DB_IP: "database"
+      DB_PWD: "interdisciplinaire_pwd"
+      SECRET_KEY: "cléSecreteProjetInterdisciplinaire"
+    networks:
+      - interdisciplinaire
+
+networks:
+  interdisciplinaire:
+    driver: bridge
