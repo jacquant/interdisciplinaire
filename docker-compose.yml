@@ -1,14 +1,24 @@
 version: "3"
 services:
-  db:
-    image: redis
+  cache:
+    image: redis:5.0.6-alpine
     container_name: redis-interdisciplinaire
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - ./data/redis:/data
     entrypoint: redis-server --appendonly yes
-    restart: always
+    networks:
+      interdisciplinaire:
+        aliases:
+          - redis
+  db:
+    image: mongo
+    container_name: mongo-interdisciplinaire
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
     networks:
       interdisciplinaire:
         aliases:
@@ -21,19 +31,24 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - cache
     links:
       - db:database
+      - cache:redis
     command: >
       sh -c "pipenv install --system
              python manage.py makemigrations &&
              python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn --bind 0.0.0.0:8000 interdisciplinaire.wsgi:application -w 2 --reload"
+             gunicorn --bind 0.0.0.0:8000 interdisciplinaire.wsgi:application --worker-tmp-dir /dev/shm --workers=2 --thread=4 --worker-class=gthread  --reload"
     volumes:
       - .:/website
     environment:
       DB_IP: "database"
-      DB_PWD: "interdisciplinaire_pwd"
+      DB_NAME: "interdisciplinaire"
+      DB_USER: "interdisciplinaire"
+      DB_PWD: "interdisciplinaire!pwd"
+      CACHE_PWD: "interdisciplinaire!pwd"
       SECRET_KEY: "cléSecreteProjetInterdisciplinaire"
     networks:
       - interdisciplinaire

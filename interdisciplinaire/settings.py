@@ -31,12 +31,16 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    # Django's app
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # External Django's app
+    "import_export",
+    # Internal Django's app
     "climate_actions.apps.ClimateActionsConfig",
 ]
 
@@ -75,20 +79,17 @@ WSGI_APPLICATION = "interdisciplinaire.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "data/db.sqlite3"),
+        "ENGINE": "djongo",
+        "NAME": os.environ.get("DB_NAME", "interdisciplinaire"),
+        "HOST": os.environ.get("DB_IP", "127.0.0.1:27017"),
     }
 }
 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": os.environ.get("DB_PWD", "motdepasse!redis"),
-        },
-        "KEY_PREFIX": "interdisciplinaire",
+        "LOCATION": "redis://redis:6379/0",
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient", },
     }
 }
 
@@ -127,3 +128,5 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+
+IMPORT_EXPORT_USE_TRANSACTIONS = False
