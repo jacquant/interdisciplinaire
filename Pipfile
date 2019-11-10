@@ -5,12 +5,15 @@ verify_ssl = true
 
 [packages]
 django = "*"
-pandas = "*"
 django-redis = "*"
 gunicorn = "*"
 redis = "*"
 djongo = "*"
 django-import-export = "*"
+django-leaflet = "*"
+django-geojson = "*"
+djangorestframework = "*"
+whitenoise = "*"
 
 [requires]
 python_version = "3.7"

@@ -24,9 +24,11 @@ services:
         aliases:
           - database
 
-  web:
-    container_name: web-interdisciplinaire
-    build: .
+  api:
+    container_name: api-interdisciplinaire
+    build:
+      context: .
+      dockerfile: Dockerfile-api
     ports:
       - "8000:8000"
     depends_on:
@@ -40,7 +42,7 @@ services:
              python manage.py makemigrations &&
              python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn --bind 0.0.0.0:8000 interdisciplinaire.wsgi:application --worker-tmp-dir /dev/shm --workers=2 --thread=4 --worker-class=gthread  --reload"
+             gunicorn --bind 0.0.0.0:8000 backend.interdisciplinaire.wsgi:application --worker-tmp-dir /dev/shm --workers=2 --thread=4 --worker-class=gthread  --reload"
     volumes:
       - .:/website
     environment:
@@ -51,8 +53,31 @@ services:
       CACHE_PWD: "interdisciplinaire!pwd"
       SECRET_KEY: "cléSecreteProjetInterdisciplinaire"
     networks:
-      - interdisciplinaire
+      interdisciplinaire:
+        aliases:
+          - django
 
+  vue:
+    container_name: vue-interdisciplinaire
+    image: node:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile-vue
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+      - db
+      - cache
+    links:
+      - db:database
+      - cache:redis
+      - api:django
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - interdisciplinaire
 networks:
   interdisciplinaire:
     driver: bridge
