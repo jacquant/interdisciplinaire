@@ -41,12 +41,14 @@ INSTALLED_APPS = [
     # External Django's app
     "import_export",
     "rest_framework",
+    "drf_yasg",
     # Internal Django's app
     "backend.climate_actions.apps.ClimateActionsConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

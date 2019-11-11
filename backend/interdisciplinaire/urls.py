@@ -15,12 +15,43 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.urls import path, include
+from django.urls import path, include, re_path
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import routers, permissions
+
+from backend.climate_actions.views import index_view, AdaptationActionView
+
+router = routers.DefaultRouter()
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Projet interdisciplinaire",
+        default_version="v1",
+        description="Api Projet interdisciplinaire",
+        terms_of_service="",
+        contact=openapi.Contact(email="antoine.jacques@student.unamur.be"),
+        license=openapi.License(name="Apache Licence 2.0"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+router.register("adaptation_action", AdaptationActionView)
 
 urlpatterns = [
+    re_path(
+        r"^swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),
+    re_path(
+        r"^api-doc/$",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    re_path(
+        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
+    ),
+    path("", index_view, name="index"),
     path("admin/", admin.site.urls),
-    path("", include("backend.climate_actions.urls"))
+    path("api/", include(router.urls)),
 ]
-if settings.DEBUG:
-    urlpatterns += staticfiles_urlpatterns()
