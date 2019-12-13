@@ -1,2 +1,7 @@
 # interdisciplinaire
-Projet Interdisciplinaire
+
+## Project setup
+
+```
+docker-compose up
+```
